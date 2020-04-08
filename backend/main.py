@@ -6,12 +6,160 @@ db = pymysql.connect("localhost", "root", "gordon64", "HackQuarantine")
 
 app = Flask(__name__)
 
-@app.route('/')
+@app.route('/', methods=['GET'])
 def home():
+    return '''<h1>SquadGoals API</h1>
+<p>Retrieving data from the SquadGoals app. </p>'''
+
+# --------------- Users --------------------------
+@app.route('/api/v1/users/all', methods=['GET'])
+def users_all():
     cursor = db.cursor()
     cursor.execute("select * from Users;")
     results = cursor.fetchall()
     return jsonify(results)
+
+@app.route('/api/v1/users', methods=['GET'])
+def users_filter():
+    query_parameters = request.args # Return query parameters used
+
+    # Find user using id or username
+    id = query_parameters.get('id')
+    username = query_parameters.get('username')
+
+    query = "select UserID, username, description from Users where"
+    to_filter = []
+
+    # Constructs query
+    if id: # runs if it is not null
+        query += ' UserID=%s AND'
+        to_filter.append(id)
+    if username:
+        query += ' username=%s AND'
+        to_filter.append(username)
+    if not (id or username):
+        return page_not_found(404)
+    query = query[:-4] + ';'
+    query_str = query % tuple(to_filter)
+
+    # Executes query
+    cursor = db.cursor()
+    cursor.execute(query_str)
+    results = cursor.fetchall()
+
+    return jsonify(results)
+
+# Find squads of a particular user
+
+
+
+# --------------- Squads --------------------------
+@app.route('/api/v1/squads/all', methods=['GET'])
+def squads_all():
+    cursor = db.cursor()
+    cursor.execute("select * from Squads;")
+    results = cursor.fetchall()
+    return jsonify(results)
+
+@app.route('/api/v1/squads', methods=['GET'])
+def squads_filter():
+    query_parameters = request.args
+
+    # Find squad using SquadID or name (although name is not unique)
+    id = query_parameters.get('id')
+    name = query_parameters.get('name')
+
+    query = "select * from Squads where"
+    to_filter = []
+    if id:
+        query += ' SquadID=%s AND'
+        to_filter.append(id)
+    if name:
+        query += ' name=%s AND'
+        to_filter.append(name)
+    if not (id or name):
+        return page_not_found(404)
+    query = query[:-4] + ';'
+    query_str = query % tuple(to_filter)
+
+    cursor = db.cursor()
+    cursor.execute(query_str)
+    results = cursor.fetchall()
+    return jsonify(results)
+
+# Find users of a squad
+
+# --------------- Goals --------------------------
+@app.route('/api/v1/goals/all', methods=['GET'])
+def goals_all():
+    cursor = db.cursor()
+    cursor.execute("select * from Goals;")
+    results = cursor.fetchall()
+    return jsonify(results)
+
+@app.route('/api/v1/goals', methods=['GET'])
+def goals_filter():
+    query_parameters = request.args
+
+    # Find goal using GoalID or name (although name is not unique)
+    id = query_parameters.get('id')
+    name = query_parameters.get('name')
+    query = "select * from Goals where"
+    to_filter = []
+    if id:
+        query += ' GoalID=%s AND'
+        to_filter.append(id)
+    if name:
+        query += ' name=%s AND'
+        to_filter.append(name)
+    if not (id or name):
+        return page_not_found(404)
+    query = query[:-4] + ';'
+    query_str = query % tuple(to_filter)
+
+    cursor = db.cursor()
+    cursor.execute(query_str)
+    results = cursor.fetchall()
+    return jsonify(results)
+
+# --------------- Goal updates --------------------------
+@app.route('/api/v1/goals/updates/all', methods=['GET'])
+def goal_updates_all():
+    cursor = db.cursor()
+    cursor.execute("select * from Goal_Updates;")
+    results = cursor.fetchall()
+    return jsonify(results)
+
+@app.route('/api/v1/goals/updates', methods=['GET'])
+def goal_updates_filter():
+    query_parameters = request.args
+
+    # Find updates using UpdateID or GoalID (although name is not unique)
+    UpdateID = query_parameters.get('UpdateID')
+    GoalID = query_parameters.get('GoalID')
+    query = "select * from Goal_Updates where"
+    to_filter = []
+    if UpdateID:
+        query += ' UpdateID=%s AND'
+        to_filter.append(UpdateID)
+    if GoalID:
+        query += ' goalID=%s AND'
+        to_filter.append(GoalID)
+    if not (UpdateID or GoalID):
+        return page_not_found(404)
+    query = query[:-4] + ';'
+    query_str = query % tuple(to_filter)
+
+    cursor = db.cursor()
+    cursor.execute(query_str)
+    results = cursor.fetchall()
+    return jsonify(results)
+
+# -----------------------------------------------
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return jsonify({'error': 'Not found'})
 
 if __name__ == '__main__':
     app.run(debug=True)
