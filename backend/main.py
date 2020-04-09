@@ -116,6 +116,66 @@ def users_goals():
 
     return jsonify(results)
 
+
+# Create a new user (using username and password)
+@app.route('/api/v1/users/create', methods=['GET'])
+def create_users():
+    query_parameters = request.args
+    username = query_parameters.get('username')
+    password = query_parameters.get('password')
+    description = query_parameters.get('description')
+
+    # Check if username is unique
+    uniqueQuery = "select exists(select username from Users where username={});".format(username)
+    cursor = db.cursor()
+    cursor.execute(uniqueQuery)
+    results=cursor.fetchall()
+    if results[0][0]==1:
+        return "Username is already taken!"
+    elif not (description):
+        query = "insert into Users(username, password) values \
+        ({},{});".format(username, password)
+        cursor.execute(query)
+        return "User created!"
+    elif not (username or password):
+        return page_not_found(404)
+    else:
+        query = "insert into Users(username, password, description) values \
+        ({},{},{});".format(username, password, description)
+        cursor.execute(query)
+        return "User created!"
+
+#/api/v1/users/create?username="Ed"&password="Duck"&description="I enjoy fishing"
+
+# Delete a user
+@app.route('/api/v1/users/delete', methods=['GET', 'POST'])
+def delete_users():
+    query_parameters = request.args
+    # Find user using id or username
+    id = query_parameters.get('id')
+    username = query_parameters.get('username')
+
+    query = "delete from Users where"
+    to_filter = []
+
+    # Constructs query
+    if id: # runs if it is not null
+        query += ' UserID=%s AND'
+        to_filter.append(id)
+    if username:
+        query += ' username=%s AND'
+        to_filter.append(username)
+    if not (id or username):
+        return page_not_found(404)
+    query = query[:-4] + ';'
+    query_str = query % tuple(to_filter)
+
+    # Executes query
+    cursor = db.cursor()
+    cursor.execute(query_str)
+    results = cursor.fetchall()
+    return "User deleted!"
+
 # --------------- Friends --------------------------
 # Find all the friends of a particular user
 @app.route('/api/v1/users/friends', methods=['GET'])
@@ -362,10 +422,6 @@ def goal_updates_filter():
     cursor.execute(query_str)
     results = cursor.fetchall()
     return jsonify(results)
-
-
-
-
 
 # -----------------------------------------------
 
