@@ -1,7 +1,11 @@
 from flask import Flask, request, jsonify
 import pymysql
 
-db = pymysql.connect("localhost", "root", "gordon64", "HackQuarantine")
+import yaml
+with open('db_cfg.yaml', 'r') as infile:
+    db_cfg = yaml.safe_load(infile)
+
+db = pymysql.connect("localhost", "root", db_cfg['password'], "HackQuarantine")
 #db = pymysql.connect("localhost", "username", "password", "database")
 
 app = Flask(__name__)
