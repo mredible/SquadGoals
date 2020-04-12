@@ -1,14 +1,18 @@
+from app import app
+from db import mysql
 from flask import Flask, request, jsonify
 import pymysql
+
 
 import yaml
 with open('db_cfg.yaml', 'r') as infile:
     db_cfg = yaml.safe_load(infile)
 
-db = pymysql.connect("localhost", "root", db_cfg['password'], "HackQuarantine")
-#db = pymysql.connect("localhost", "username", "password", "database")
+db = mysql.connect()
 
-app = Flask(__name__)
+#FOR LOCAL VERSION:
+# db = pymysql.connect(host="localhost", user="root", passwd=db_cfg['password'], db="HackQuarantine")
+
 
 @app.route('/', methods=['GET'])
 def home():
@@ -21,6 +25,7 @@ def users_all():
     cursor = db.cursor()
     cursor.execute("select * from Users;")
     results = cursor.fetchall()
+    cursor.close()
     return jsonify(results)
 
 @app.route('/api/v1/users', methods=['GET'])
@@ -50,6 +55,7 @@ def users_filter():
     cursor = db.cursor()
     cursor.execute(query_str)
     results = cursor.fetchall()
+    cursor.close()
 
     return jsonify(results)
 
@@ -84,6 +90,7 @@ def users_squads():
     cursor = db.cursor()
     cursor.execute(query_str)
     results = cursor.fetchall()
+    cursor.close()
 
     return jsonify(results)
 
@@ -117,6 +124,7 @@ def users_goals():
     cursor = db.cursor()
     cursor.execute(query_str)
     results = cursor.fetchall()
+    cursor.close()
 
     return jsonify(results)
 
@@ -135,18 +143,22 @@ def create_users():
     cursor.execute(uniqueQuery)
     results=cursor.fetchall()
     if results[0][0]==1:
+        cursor.close()
         return "Username is already taken!"
     elif not (description):
         query = "insert into Users(username, password) values \
         ({},{});".format(username, password)
         cursor.execute(query)
+        cursor.close()
         return "User created!"
     elif not (username or password):
+        cursor.close()
         return page_not_found(404)
     else:
         query = "insert into Users(username, password, description) values \
         ({},{},{});".format(username, password, description)
         cursor.execute(query)
+        cursor.close()
         return "User created!"
 
 #/api/v1/users/create?username="Ed"&password="Duck"&description="I enjoy fishing"
@@ -178,6 +190,7 @@ def delete_users():
     cursor = db.cursor()
     cursor.execute(query_str)
     results = cursor.fetchall()
+    cursor.close()
     return "User deleted!"
 
 # --------------- Friends --------------------------
@@ -213,6 +226,7 @@ def users_friends():
     cursor = db.cursor()
     cursor.execute(query_str)
     results = cursor.fetchall()
+    cursor.close()
 
     return jsonify(results)
 
@@ -222,6 +236,7 @@ def squads_all():
     cursor = db.cursor()
     cursor.execute("select * from Squads;")
     results = cursor.fetchall()
+    cursor.close()
     return jsonify(results)
 
 @app.route('/api/v1/squads', methods=['GET'])
@@ -248,6 +263,7 @@ def squads_filter():
     cursor = db.cursor()
     cursor.execute(query_str)
     results = cursor.fetchall()
+    cursor.close()
     return jsonify(results)
 
 # Find users of a squad through SquadID or name
@@ -277,6 +293,7 @@ def squads_users():
     cursor = db.cursor()
     cursor.execute(query_str)
     results = cursor.fetchall()
+    cursor.close()
     return jsonify(results)
 
 # Find goals of a squad
@@ -304,6 +321,7 @@ def squads_goals():
     cursor = db.cursor()
     cursor.execute(query_str)
     results = cursor.fetchall()
+    cursor.close()
     return jsonify(results)
 
 # --------------- Goals --------------------------
@@ -312,6 +330,7 @@ def goals_all():
     cursor = db.cursor()
     cursor.execute("select * from Goals;")
     results = cursor.fetchall()
+    cursor.close()
     return jsonify(results)
 
 @app.route('/api/v1/goals', methods=['GET'])
@@ -337,6 +356,7 @@ def goals_filter():
     cursor = db.cursor()
     cursor.execute(query_str)
     results = cursor.fetchall()
+    cursor.close()
     return jsonify(results)
 
 
@@ -365,6 +385,7 @@ def goals_squads():
     cursor = db.cursor()
     cursor.execute(query_str)
     results = cursor.fetchall()
+    cursor.close()
     return jsonify(results)
 
 # Finds all users of a particular goal
@@ -392,6 +413,7 @@ def goals_users():
     cursor = db.cursor()
     cursor.execute(query_str)
     results = cursor.fetchall()
+    cursor.close()
     return jsonify(results)
 
 # --------------- Goal updates --------------------------
@@ -400,6 +422,7 @@ def goal_updates_all():
     cursor = db.cursor()
     cursor.execute("select * from Goal_Updates;")
     results = cursor.fetchall()
+    cursor.close()
     return jsonify(results)
 
 @app.route('/api/v1/goals/updates', methods=['GET'])
@@ -425,6 +448,7 @@ def goal_updates_filter():
     cursor = db.cursor()
     cursor.execute(query_str)
     results = cursor.fetchall()
+    cursor.close()
     return jsonify(results)
 
 # -----------------------------------------------
