@@ -3,16 +3,13 @@ from db import mysql
 from flask import Flask, request, jsonify
 import pymysql
 
-
-import yaml
-with open('db_cfg.yaml', 'r') as infile:
-    db_cfg = yaml.safe_load(infile)
-
-db = mysql.connect()
-
 #FOR LOCAL VERSION:
+# import yaml
+# with open('db_cfg.yaml', 'r') as infile:
+#     db_cfg = yaml.safe_load(infile)
 # db = pymysql.connect(host="localhost", user="root", passwd=db_cfg['password'], db="HackQuarantine")
 
+db = mysql.connect()
 
 @app.route('/', methods=['GET'])
 def home():
